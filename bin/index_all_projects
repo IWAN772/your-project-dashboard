@@ -294,7 +294,7 @@ end
 # --- Main ---
 
 if __FILE__ == $0
-  root = ARGV[0] || "/Users/avi/Development/code"
+  root = ARGV[0] || File.expand_path("~/Development")
   output_file = ARGV[1] || "project_index.json"
 
   indexer = ProjectIndexer.new(root)
