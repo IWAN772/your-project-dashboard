@@ -1,0 +1,324 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Standalone script to index ALL projects in a directory tree
+# Outputs JSON with project metadata - no git required, no date cutoff
+
+require "json"
+require "find"
+require "date"
+require "set"
+
+class ProjectIndexer
+  # Strong markers = definitely a project root
+  STRONG_MARKERS = %w[
+    Gemfile package.json Cargo.toml go.mod pyproject.toml requirements.txt
+    composer.json mix.exs build.gradle pom.xml Makefile CMakeLists.txt
+    Dockerfile docker-compose.yml docker-compose.yaml
+    CLAUDE.md .claude
+  ].freeze
+
+  # Directory markers (check for directory existence)
+  DIR_MARKERS = %w[.git .cursor .xcodeproj .xcworkspace].freeze
+
+  # Directories to skip entirely
+  SKIP_DIRS = %w[
+    node_modules vendor .git build dist target _build deps
+    .bundle .cache __pycache__ .pytest_cache .mypy_cache
+    .next .nuxt .output coverage tmp log .terraform
+  ].freeze
+
+  # Max depth to search (relative to root)
+  MAX_DEPTH = 4
+
+  attr_reader :projects, :root_path
+
+  def initialize(root_path)
+    @root_path = File.expand_path(root_path)
+    @projects = []
+    @processed_paths = Set.new
+  end
+
+  def scan
+    puts "Indexing all projects in #{@root_path}..."
+    puts "Max depth: #{MAX_DEPTH}"
+    puts
+
+    walk_directory(@root_path, 0)
+
+    puts
+    puts "Found #{@projects.size} projects"
+    @projects
+  end
+
+  def to_json
+    {
+      scanned_at: Time.now.iso8601,
+      root: @root_path,
+      total_projects: @projects.size,
+      projects: @projects.sort_by { |p| p[:path] }
+    }.to_json
+  end
+
+  def to_pretty_json
+    JSON.pretty_generate(JSON.parse(to_json))
+  end
+
+  private
+
+  def walk_directory(path, depth)
+    return if depth > MAX_DEPTH
+    return if @processed_paths.any? { |p| path.start_with?(p + "/") }
+
+    basename = File.basename(path)
+
+    # Skip hidden dirs (except root)
+    return if depth > 0 && basename.start_with?(".")
+
+    # Skip noise directories
+    return if SKIP_DIRS.include?(basename)
+
+    # Check if this is a project root
+    markers = detect_markers(path)
+
+    if markers.any?
+      # This is a project - record it and don't descend
+      project = extract_project_data(path, markers)
+      @projects << project
+      @processed_paths << path
+
+      status = project[:has_git] ? "git" : "no-git"
+      puts "  ✓ #{project[:name].ljust(40)} [#{project[:type].ljust(12)}] (#{status})"
+      return
+    end
+
+    # Not a project - descend into subdirectories
+    begin
+      Dir.children(path).sort.each do |child|
+        child_path = File.join(path, child)
+        next unless File.directory?(child_path)
+        walk_directory(child_path, depth + 1)
+      end
+    rescue Errno::EACCES, Errno::ENOENT => e
+      # Skip inaccessible directories
+    end
+  end
+
+  def detect_markers(path)
+    found = []
+
+    STRONG_MARKERS.each do |marker|
+      marker_path = File.join(path, marker)
+      found << marker if File.exist?(marker_path)
+    end
+
+    DIR_MARKERS.each do |marker|
+      marker_path = File.join(path, marker)
+      if File.directory?(marker_path) || Dir.glob(File.join(path, marker)).any?
+        found << marker
+      end
+    end
+
+    found
+  end
+
+  def extract_project_data(path, markers)
+    {
+      path: path,
+      name: File.basename(path),
+      description: extract_description(path),
+      type: infer_type(path, markers),
+      last_modified: find_last_modified(path),
+      has_git: File.directory?(File.join(path, ".git")),
+      links: extract_links(path),
+      markers_found: markers
+    }
+  end
+
+  def extract_description(path)
+    # Try README.md first
+    readme_path = File.join(path, "README.md")
+    if File.exist?(readme_path)
+      desc = extract_readme_description(readme_path)
+      return desc if desc
+    end
+
+    # Try CLAUDE.md
+    claude_path = File.join(path, "CLAUDE.md")
+    if File.exist?(claude_path)
+      desc = extract_readme_description(claude_path)
+      return desc if desc
+    end
+
+    # Try package.json
+    pkg_path = File.join(path, "package.json")
+    if File.exist?(pkg_path)
+      begin
+        pkg = JSON.parse(File.read(pkg_path))
+        return pkg["description"] if pkg["description"]
+      rescue JSON::ParserError
+      end
+    end
+
+    # Try gemspec
+    gemspecs = Dir.glob(File.join(path, "*.gemspec"))
+    if gemspecs.any?
+      content = File.read(gemspecs.first) rescue nil
+      if content && content =~ /\.summary\s*=\s*["']([^"']+)["']/
+        return $1
+      end
+    end
+
+    nil
+  end
+
+  def extract_readme_description(path)
+    lines = File.readlines(path, chomp: true).first(20) rescue []
+
+    # Skip title lines and blank lines, get first paragraph
+    in_content = false
+    description_lines = []
+
+    lines.each do |line|
+      # Skip badges and images
+      next if line =~ /^\[!\[/ || line =~ /^!\[/
+
+      # Skip headers
+      if line =~ /^#/
+        in_content = true
+        next
+      end
+
+      next unless in_content
+      next if line.strip.empty? && description_lines.empty?
+
+      # Stop at blank line after content
+      break if line.strip.empty? && description_lines.any?
+
+      description_lines << line.strip
+    end
+
+    desc = description_lines.join(" ").strip
+    return nil if desc.empty?
+
+    # Truncate if too long
+    desc.length > 200 ? desc[0..197] + "..." : desc
+  end
+
+  def infer_type(path, markers)
+    return "rails-app" if markers.include?("Gemfile") && has_rails?(path)
+    return "ruby-gem" if Dir.glob(File.join(path, "*.gemspec")).any?
+    return "ruby-app" if markers.include?("Gemfile")
+    return "node-app" if markers.include?("package.json")
+    return "rust-app" if markers.include?("Cargo.toml")
+    return "go-app" if markers.include?("go.mod")
+    return "python-app" if markers.include?("pyproject.toml") || markers.include?("requirements.txt")
+    return "elixir-app" if markers.include?("mix.exs")
+    return "java-app" if markers.include?("pom.xml") || markers.include?("build.gradle")
+    return "docker-app" if markers.include?("Dockerfile")
+    return "c-cpp-app" if markers.include?("CMakeLists.txt") || markers.include?("Makefile")
+    "unknown"
+  end
+
+  def has_rails?(path)
+    gemfile = File.join(path, "Gemfile")
+    return false unless File.exist?(gemfile)
+
+    content = File.read(gemfile) rescue ""
+    content.include?("rails")
+  end
+
+  def find_last_modified(path)
+    newest_time = nil
+
+    Find.find(path) do |file_path|
+      basename = File.basename(file_path)
+
+      # Skip noise directories
+      if File.directory?(file_path)
+        Find.prune if SKIP_DIRS.include?(basename)
+        Find.prune if basename.start_with?(".")
+        next
+      end
+
+      # Skip common non-code files
+      next if basename =~ /\.(lock|sum|log)$/
+
+      begin
+        mtime = File.mtime(file_path)
+        newest_time = mtime if newest_time.nil? || mtime > newest_time
+      rescue Errno::ENOENT, Errno::EACCES
+      end
+    end
+
+    newest_time&.iso8601
+  rescue => e
+    nil
+  end
+
+  def extract_links(path)
+    links = []
+
+    # Git remote
+    git_config = File.join(path, ".git", "config")
+    if File.exist?(git_config)
+      content = File.read(git_config) rescue ""
+      if content =~ /url\s*=\s*(.+)/
+        url = $1.strip
+        # Convert SSH to HTTPS for display
+        url = url.gsub(/^git@github\.com:/, "https://github.com/")
+        url = url.gsub(/\.git$/, "")
+        links << url
+      end
+    end
+
+    # package.json homepage/repository
+    pkg_path = File.join(path, "package.json")
+    if File.exist?(pkg_path)
+      begin
+        pkg = JSON.parse(File.read(pkg_path))
+        links << pkg["homepage"] if pkg["homepage"]
+        if pkg["repository"].is_a?(String)
+          links << pkg["repository"]
+        elsif pkg["repository"].is_a?(Hash)
+          links << pkg["repository"]["url"] if pkg["repository"]["url"]
+        end
+      rescue JSON::ParserError
+      end
+    end
+
+    links.uniq.compact.reject(&:empty?)
+  end
+end
+
+# --- Main ---
+
+if __FILE__ == $0
+  root = ARGV[0] || "/Users/avi/Development/code"
+  output_file = ARGV[1] || "project_index.json"
+
+  indexer = ProjectIndexer.new(root)
+  indexer.scan
+
+  # Write JSON output
+  File.write(output_file, indexer.to_pretty_json)
+  puts
+  puts "Wrote #{output_file}"
+
+  # Print summary
+  puts
+  puts "=" * 60
+  puts "SUMMARY"
+  puts "=" * 60
+
+  by_type = indexer.projects.group_by { |p| p[:type] }
+  by_type.sort_by { |_, v| -v.size }.each do |type, projects|
+    puts "  #{type.ljust(15)} #{projects.size}"
+  end
+
+  puts
+  git_count = indexer.projects.count { |p| p[:has_git] }
+  no_git_count = indexer.projects.count { |p| !p[:has_git] }
+  puts "  With git:    #{git_count}"
+  puts "  Without git: #{no_git_count}"
+end

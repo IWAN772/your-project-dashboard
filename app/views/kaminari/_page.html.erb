@@ -1,0 +1,16 @@
+<%# Link showing page number
+  - available local variables
+    page:          a page object for "this" page
+    url:           url to this page
+    current_page:  a page object for the currently displayed page
+    total_pages:   total number of pages
+    per_page:      number of items to fetch per page
+    remote:        data-remote
+-%>
+<% if page.current? %>
+  <span class="inline-flex items-center justify-center w-8 h-8 text-sm font-medium rounded bg-blue-600 text-white">
+    <%= page %>
+  </span>
+<% else %>
+  <%= link_to page, url, rel: page.rel, class: "inline-flex items-center justify-center w-8 h-8 text-sm font-medium rounded text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors", data: { turbo_frame: "results" } %>
+<% end %>

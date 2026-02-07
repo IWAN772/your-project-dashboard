@@ -1,0 +1,7 @@
+<%= turbo_stream.after "note_form" do %>
+  <%= turbo_frame_tag dom_id(@note) do %>
+    <%= render "notes/note", project: @project, note: @note %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace "note_form", partial: "notes/form", locals: { project: @project } %>

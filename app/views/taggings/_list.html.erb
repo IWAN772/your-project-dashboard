@@ -1,0 +1,21 @@
+<div class="p-4">
+  <h3 class="text-sm font-semibold text-neutral-900 dark:text-white mb-3">Tags</h3>
+
+  <!-- Tag input form -->
+  <div id="tag_form">
+    <%= render "taggings/form", project: project %>
+  </div>
+
+  <!-- Tags list -->
+  <div id="tags_list" class="flex flex-wrap gap-1.5 mt-3">
+    <% if project.tags.any? %>
+      <% project.tags.each do |tag| %>
+        <%= turbo_frame_tag dom_id(tag) do %>
+          <%= render "taggings/tag", project: project, tag: tag %>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="text-xs text-neutral-400 dark:text-neutral-600 italic">No tags yet</p>
+    <% end %>
+  </div>
+</div>

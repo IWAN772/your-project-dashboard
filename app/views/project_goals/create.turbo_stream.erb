@@ -1,0 +1,7 @@
+<%= turbo_stream.after "goal_form" do %>
+  <%= turbo_frame_tag dom_id(@project_goal) do %>
+    <%= render "project_goals/project_goal", project: @project, project_goal: @project_goal %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace "goal_form", partial: "project_goals/form", locals: { project: @project } %>

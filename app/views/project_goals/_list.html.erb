@@ -1,0 +1,21 @@
+<div class="p-4">
+  <h3 class="text-sm font-semibold text-neutral-900 dark:text-white mb-3">Goals</h3>
+
+  <!-- Goal input form -->
+  <div id="goal_form">
+    <%= render "project_goals/form", project: project %>
+  </div>
+
+  <!-- Goals list -->
+  <div id="goals_list" class="mt-4 space-y-2">
+    <% if project.project_goals.any? %>
+      <% project.project_goals.includes(:goal).each do |project_goal| %>
+        <%= turbo_frame_tag dom_id(project_goal) do %>
+          <%= render "project_goals/project_goal", project: project, project_goal: project_goal %>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="text-xs text-neutral-400 dark:text-neutral-600 italic">No goals yet</p>
+    <% end %>
+  </div>
+</div>

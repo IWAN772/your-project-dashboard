@@ -1,0 +1,13 @@
+<%= form_with url: project_taggings_path(project), method: :post, data: { controller: "tag-input", turbo_frame: "project_tags" } do |f| %>
+  <div class="flex gap-2">
+    <%= text_field_tag :tag_name, "",
+        placeholder: "Add tag...",
+        class: "flex-1 px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+        data: { tag_input_target: "field" },
+        autocomplete: "off" %>
+    <%= f.submit "Add", class: "px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors" %>
+  </div>
+  <% if local_assigns[:error] %>
+    <p class="text-xs text-red-600 dark:text-red-400 mt-1"><%= error %></p>
+  <% end %>
+<% end %>

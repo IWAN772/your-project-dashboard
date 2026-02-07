@@ -1,0 +1,84 @@
+<%= form_with url: projects_path, method: :get, data: { controller: "search-form", turbo_frame: "results" }, class: "mb-6" do |form| %>
+  <div class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
+    <!-- Search bar -->
+    <div class="mb-4">
+      <label for="search" class="sr-only">Search projects</label>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <%= form.text_field :search,
+                            value: params[:search],
+                            placeholder: "Search projects by name, path, or commit message...",
+                            autofocus: true,
+                            data: { action: "input->search-form#search", search_form_target: "input" },
+                            class: "block w-full pl-10 pr-3 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
+        <% if params[:search].present? %>
+          <%= link_to projects_path(filter_params(exclude: [:search])),
+                      data: { turbo_frame: "results" },
+                      class: "absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300" do %>
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Filter dropdowns -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Ownership filter -->
+      <div>
+        <label for="ownership" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Ownership</label>
+        <%= form.select :ownership,
+                        options_for_select([
+                          ["All Projects", "all"],
+                          ["My Projects", "own"],
+                          ["Forks", "forks"]
+                        ], params[:ownership] || "all"),
+                        {},
+                        data: { action: "change->search-form#submit" },
+                        class: "block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
+      </div>
+
+      <!-- Status filter -->
+      <div>
+        <label for="status" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Status</label>
+        <%= form.select :status,
+                        options_for_select([
+                          ["All", "all"],
+                          ["Active", "active"],
+                          ["Recent", "recent"],
+                          ["Paused", "paused"],
+                          ["WIP", "wip"],
+                          ["Deployed", "deployed"]
+                        ], params[:status] || "all"),
+                        {},
+                        data: { action: "change->search-form#submit" },
+                        class: "block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
+      </div>
+
+      <!-- Tech stack filter -->
+      <div>
+        <label for="tech_stack" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Tech Stack</label>
+        <%= form.select :tech_stack,
+                        options_for_select([["All", ""]] + @tech_stacks.map { |t| [t.capitalize, t] }, params[:tech_stack]),
+                        {},
+                        data: { action: "change->search-form#submit" },
+                        class: "block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
+      </div>
+
+      <!-- Type filter -->
+      <div>
+        <label for="type" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Project Type</label>
+        <%= form.select :type,
+                        options_for_select([["All", "all"]] + @project_types.map { |t| [t.split('-').map(&:capitalize).join(' '), t] }, params[:type] || "all"),
+                        {},
+                        data: { action: "change->search-form#submit" },
+                        class: "block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
+      </div>
+    </div>
+  </div>
+<% end %>

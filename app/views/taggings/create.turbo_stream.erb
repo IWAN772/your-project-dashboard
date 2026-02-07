@@ -1,0 +1,7 @@
+<%= turbo_stream.before "tags_list p, tags_list .inline-flex:first-child", partial: "taggings/tag", locals: { project: @project, tag: @tagging.tag } do %>
+  <%= turbo_frame_tag dom_id(@tagging.tag) do %>
+    <%= render "taggings/tag", project: @project, tag: @tagging.tag %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace "tag_form", partial: "taggings/form", locals: { project: @project } %>

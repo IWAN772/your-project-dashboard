@@ -1,0 +1,22 @@
+<%= form_with model: [project, ProjectGoal.new], data: { turbo_frame: "project_goals" } do |f| %>
+  <div class="space-y-2">
+    <%= f.text_field :goal_name,
+        placeholder: "Add a goal...",
+        class: "w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+        autocomplete: "off",
+        list: "goals_datalist" %>
+
+    <datalist id="goals_datalist">
+      <option value="open source">
+      <option value="live">
+      <option value="documented">
+      <option value="blog post">
+      <option value="demo video">
+    </datalist>
+
+    <%= f.submit "Add Goal", class: "w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors" %>
+  </div>
+  <% if local_assigns[:error] %>
+    <p class="text-xs text-red-600 dark:text-red-400 mt-1"><%= error %></p>
+  <% end %>
+<% end %>
