@@ -6,26 +6,35 @@ A Rails 8.2 application that automatically discovers, analyzes, and tracks all a
 
 **Solution:** Automated project discovery and intelligent metadata extraction. One command gives you a complete inventory of your development work, with a web dashboard to browse and manage it all.
 
+![Project Dashboard](docs/preview.png)
+
 ## Features
 
-- **Automatic git repository discovery** — recursively scans your development directories
-- **Rich metadata extraction** — tech stack, commit history, contributors, deployment status
-- **Web dashboard** — browse projects with filtering, search, and sorting
-- **Quick Resume cards** — jump back into recently active projects
-- **Left rail navigation** — pinned projects, recent activity, smart groups
-- **Project detail pages** — full metadata, goals, notes, and tags per project
+- **Automatic git repo discovery** -- recursively scans your development directories
+- **Rich metadata extraction** -- tech stack, commit history, contributors, deployment status, documentation inventory
+- **Web dashboard** -- browse, filter, search, and sort all your projects
+- **Quick Resume cards** -- jump back into your most recently active work
+- **Left rail navigation** -- pinned projects, recently viewed, smart groups (active this week, stalled)
+- **Project detail pages** -- full metadata, tags, notes, and goals per project
+- **Ownership tracking** -- distinguishes your projects from forks
+- **Flexible JSON metadata** -- new fields added without migrations
+
+## Quick start
+
+```bash
+bin/setup
+bin/rails db:migrate
+bin/rake projects:scan
+bin/dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000).
 
 ## Requirements
 
 - Ruby 3.4+
 - SQLite3
-
-## Setup
-
-```bash
-bin/setup
-bin/rails db:migrate
-```
+- Git
 
 ## Usage
 
@@ -45,8 +54,6 @@ bin/rake projects:config                            # Show configuration
 bin/dev
 ```
 
-Then visit [http://localhost:3000](http://localhost:3000).
-
 ### Query from the console
 
 ```bash
@@ -54,17 +61,11 @@ bin/rails console
 ```
 
 ```ruby
-# All projects, most recent first
 Project.order(last_commit_date: :desc)
-
-# Rails projects only
 Project.where("metadata ->> 'inferred_type' = ?", "rails-app")
-
-# Count by type
-Project.all.group_by { |p| p.metadata['inferred_type'] }.transform_values(&:count)
-
-# Most active by commit count
-Project.all.sort_by { |p| p.metadata['commit_count_8m'] || 0 }.reverse.first(10)
+Project.active_this_week
+Project.pinned
+Project.search("my-project")
 ```
 
 ## Configuration
@@ -72,28 +73,37 @@ Project.all.sort_by { |p| p.metadata['commit_count_8m'] || 0 }.reverse.first(10)
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SCAN_ROOT_PATH` | `~/Development` | Root directory to scan |
-| `SCAN_CUTOFF_DAYS` | `240` (8 months) | Projects older than this are skipped |
+| `SCAN_CUTOFF_DAYS` | `240` (8 months) | Repositories older than this are skipped |
 | `DRY_RUN` | `false` | If `true`, scan but don't save |
 
 ## Architecture
 
 ```
-Rake Task → ProjectScanner → ProjectData → Project Model → SQLite
+Rake Task --> ProjectScanner --> ProjectData --> Project Model --> SQLite --> Web Dashboard
 ```
 
-- **ProjectScanner** (`lib/project_scanner.rb`) — discovers repos, orchestrates scanning
-- **ProjectData** (`lib/project_data.rb`) — extracts metadata via git commands and file analysis
-- **Project** (`app/models/project.rb`) — ActiveRecord model with JSON metadata column
+- **ProjectScanner** (`lib/project_scanner.rb`) -- discovers repos, orchestrates scanning
+- **ProjectData** (`lib/project_data.rb`) -- extracts metadata via git commands and file analysis
+- **Project** (`app/models/project.rb`) -- ActiveRecord model with JSON metadata column
+- **Filterable** (`app/controllers/concerns/filterable.rb`) -- search, filter, and sort logic
 
-The `metadata` JSON column stores tech stack, commit history, contributors, deployment status, documentation inventory, and more — no migrations needed when adding new fields.
+The `metadata` JSON column stores tech stack, commit history, contributors, deployment status, documentation inventory, and more -- no migrations needed when adding new fields.
 
-## Tech Stack
+## Tech stack
 
 - **Ruby 3.4** / **Rails 8.2**
-- **SQLite3** — local-first, no external dependencies
-- **Tailwind 4** + **Hotwire** (Turbo + Stimulus) — web UI
-- **Propshaft** + **Importmap** — asset pipeline
-- **Solid Queue** / **Solid Cache** — background jobs and caching
+- **SQLite3** -- local-first, no external dependencies
+- **Tailwind 4** + **Hotwire** (Turbo + Stimulus)
+- **Propshaft** + **Importmap**
+- **Solid Queue** / **Solid Cache**
+- **Kaminari** -- pagination
+
+## Documentation
+
+- **[Getting Started](docs/GETTING_STARTED.md)** -- Installation, first scan, launching the dashboard
+- **[Scanning](docs/SCANNING.md)** -- Configuration, metadata extraction, tech stack detection
+- **[Web Dashboard](docs/WEB_DASHBOARD.md)** -- Filtering, search, tags, notes, goals, pinned projects
+- **[Architecture](docs/ARCHITECTURE.md)** -- Data flow, database schema, design decisions, extending the scanner
 
 ## License
 
